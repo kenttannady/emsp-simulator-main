@@ -74,6 +74,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
     - name: Deploy to Kubernetes
       run: |
         # Update image tag in kustomization
