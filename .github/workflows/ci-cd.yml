@@ -92,9 +92,6 @@ jobs:
         # Create namespace if not exists
         kubectl create namespace emsp-simulator --dry-run=client -o yaml | kubectl apply -f -
         
-        # Update image tag in kustomization
-        sed -i "s|newTag: latest|newTag: main-${{ github.sha }}|g" k8s/kustomization.yaml
-        
         # Apply to Kubernetes
         kubectl apply -k k8s/
         
