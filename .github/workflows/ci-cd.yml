@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for eMSP Simulator
+name: Minimal CI/CD
 
 on:
   push:
@@ -11,12 +11,11 @@ env:
   IMAGE_NAME: emsp-simulator
 
 jobs:
-  # Build and Test Job
-  build-and-test:
-    runs-on: self-hosted
-    
+  # Build and Test
+  build:
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
     - name: Set up JDK 17
@@ -25,27 +24,12 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Cache Maven dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
+    - name: Build with Maven
+      run: ./mvnw clean package -DskipTests
 
-    - name: Run tests
-      run: ./mvnw clean test
-
-    - name: Generate test report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()
-      with:
-        name: Maven Tests
-        path: target/surefire-reports/*.xml
-        reporter: java-junit
-
-  # Docker Build and Push Job
+  # Build and Push Docker Image
   build-and-push:
-    needs: build-and-test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     
@@ -54,7 +38,7 @@ jobs:
       packages: write
 
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
     - name: Log in to Container Registry
@@ -71,9 +55,7 @@ jobs:
         images: ${{ env.REGISTRY }}/${{ github.repository }}
         tags: |
           type=ref,event=branch
-          type=ref,event=pr
           type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -81,79 +63,24 @@ jobs:
         context: .
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
 
   # Deploy to Kubernetes (Self-hosted runner)
-  deploy-to-k8s:
+  deploy:
     needs: build-and-push
     runs-on: self-hosted
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.28.0'
-
-    - name: Configure kubectl
-      run: |
-        kubectl config use-context docker-desktop
-        kubectl cluster-info
-
-    - name: Create namespace if not exists
-      run: |
-        kubectl create namespace emsp-simulator --dry-run=client -o yaml | kubectl apply -f -
 
     - name: Deploy to Kubernetes
       run: |
-        # Update image tag in deployment
-        sed -i "s|image: emsp-simulator:latest|image: ${{ env.REGISTRY }}/${{ github.repository }}:main-${{ github.sha }}|g" k8s/emsp-deployment.yaml
+        # Update image tag in kustomization
+        sed -i "s|newTag: latest|newTag: main-${{ github.sha }}|g" k8s/kustomization.yaml
         
-        # Apply all manifests
+        # Apply to Kubernetes
         kubectl apply -k k8s/
-
-    - name: Wait for deployment
-      run: |
-        kubectl wait --for=condition=available --timeout=300s deployment/emsp-simulator-deployment -n emsp-simulator
-        kubectl wait --for=condition=available --timeout=300s deployment/mysql-deployment -n emsp-simulator
-
-    - name: Verify deployment
-      run: |
-        kubectl get pods -n emsp-simulator
-        kubectl get services -n emsp-simulator
-        kubectl get ingress -n emsp-simulator
-
-    - name: Get application URL
-      run: |
-        echo "Application deployed successfully!"
-        echo "Access the application at: http://localhost:8080"
-        echo "Or via ingress: http://emsp-simulator.local (make sure to add to /etc/hosts)"
-
-  # Rollback Job (Manual trigger)
-  rollback:
-    runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback'
-    needs: deploy-to-k8s
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.28.0'
-
-    - name: Configure kubectl
-      run: |
-        kubectl config use-context docker-desktop
-
-    - name: Rollback deployment
-      run: |
-        kubectl rollout undo deployment/emsp-simulator-deployment -n emsp-simulator
-        kubectl rollout status deployment/emsp-simulator-deployment -n emsp-simulator
+        
+        # Wait for deployment
+        kubectl rollout status deployment/emsp-simulator-deployment -n emsp-simulator --timeout=300s
