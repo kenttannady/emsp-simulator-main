@@ -24,11 +24,8 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Make mvnw executable
-      run: chmod +x ./mvnw
-      
     - name: Build with Maven
-      run: ./mvnw clean package -DskipTests
+      run: mvn clean package -DskipTests
 
   # Build and Push Docker Image
   build-and-push:
