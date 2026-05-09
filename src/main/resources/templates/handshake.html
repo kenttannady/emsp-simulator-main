@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Shake Simulation</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+
+</head>
+
+<body class="font-inter bg-slate-100">
+    <!-- Navigation section -->
+    <header>
+        <nav>
+            <!-- Sidebar for larger screen -->
+            <section id="sidebar" class="hidden sm:block">
+                <div class="fixed left-0 top-0 w-24 h-full bg-gray-100 p-2">
+                    <a href="/" class="flex items-center pb-4 border-b border-b-gray-800">
+                        <span class="font-bold text-xs text-primary block py-2 text-center">eMSP and CPO
+                            Simulator</span>
+                    </a>
+                    <ul class="mt-4 sidebar-menu">
+                        <li class="mb-5 group">
+                            <a href="/"
+                                class="flex flex-col justify-center items-center py-2 text-slate-800 hover:text-white hover:bg-emerald-300 rounded-md bg-white shadow-md border">
+                                <i class="ri-database-2-line text-lg"></i>
+                                <span class="text-xs">Request</span>
+                            </a>
+                        </li>
+                        <li class="mb-1 group active">
+                            <a href="/handshake"
+                                class="flex flex-col justify-center items-center py-2 text-slate-800 hover:text-white hover:bg-emerald-300 rounded-md group-[.active]:bg-emerald-500 group-[.active]:text-white">
+                                <i class="ri-shake-hands-line text-lg"></i>
+                                <span class="text-xs">Handshake</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            <!-- Section for smaller screen -->
+            <section id="bottomNav" class="lg:hidden">
+                <div
+                    class="lg:hidden bg-white fixed bottom-0 left-0 h-16 border rounded-t-2xl w-full shadow-t flex flex-row items-center justify-stretch">
+                    <ul class="flex w-full mx-2 gap-10 justify-center">
+                        <li>
+                            <a href="/" class="flex flex-col items-center hover:cursor-pointer">
+                                <i class="ri-database-2-line text-lg"></i>
+                                <span class="text-xs">Request</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/handshake" class="flex flex-col items-center text-emerald-500">
+                                <i class="ri-shake-hands-line text-lg"></i>
+                                <span class="text-xs">Handshake</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </nav>
+    </header>
+    <!-- Trading Diary -->
+    <main class="lg:w-[calc(100%-96px)] lg:ml-24 mb-24" x-data="xData()" x-init="xInit()">
+        <!-- header -->
+        <section id="search-notification-profile" class="px-2">
+            <div class="py-2 px-2 bg-white flex items-center justify-between shadow-md shadow-black/10 rounded-md">
+                <ul class="flex items-center text-sm">
+                    <li class="mr-2">
+                        <a href="#" class="text-gray-400 hover:text-gray-600 font-medium">
+                            <span class="text-center">eMSP & CPO Simulator</span></a>
+                    </li>
+                    <li class="text-gray-600 mr-2 font-medium">/</li>
+                    <li class="text-emerald-500 mr-2 font-medium">Handshake</li>
+                </ul>
+                <a href="/logout"
+                    class="p-1 font-semibold bg-emerald-500/10 text-emerald-500 rounded-md px-2">Anonymous</a>
+            </div>
+        </section>
+        <section class="p-2">
+            <div x-data="xData()" x-init="xInit()"
+                class="bg-white border border-gray-100 shadow-md shadow-black/10 rounded-md p-2">
+                <div class="flex flex-row mb-2 items-center">
+                    <div
+                        class="border border-emerald-500 bg-emerald-500/10 rounded-full h-8 w-8 flex items-center justify-center">
+                        <span class="p-2 font-bold text-emerald-500">
+                            <i class="ri-shake-hands-line"></i>
+                        </span>
+                    </div>
+                    <div class="font-medium ml-3 mr-3">Handshake Between eMSP and CPO</div>
+                </div>
+                <div class="w-full mt-5">
+                    <div class="ml-5 mb-5 w-full">
+                        <div class="flex flex-col w-full">
+                            <div class="my-1 flex flex-col items-start gap-2 w-full">
+                                <label for="url">CPO Versions API URL (*)</label>
+                                <div class="flex flex-row items-center w-full">
+                                    <input type="text" name="url" id="url" x-model="handshake.url"
+                                        class="py-2 ml-2 mr-10 px-4 bg-slate-100 outline-none border-slate-100 rounded-md text-sm focus:bg-emerald-50 w-full"
+                                        placeholder="https://cpo.ev/ocpi/emsp/2.2.1/versions ..." />
+                                </div>
+                            </div>
+                            <div class="my-1 flex flex-col items-start gap-2 w-full">
+                                <label for="tokenA">Token A Provied by CPO (*)</label>
+                                <div class="flex flex-row items-center w-full">
+                                    <input type="text" name="tokenA" id="tokenA" x-model="handshake.tokenA"
+                                        class="py-2 ml-2 mr-10 px-4 bg-slate-100 outline-none border-slate-100 rounded-md text-sm focus:bg-emerald-50 w-full"
+                                        placeholder="AhsnSYhs7897sj ..." />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-5">
+                            <button @click="shakeHands()"
+                                class="text-base font-semibold text-white bg-primary py-1 px-2 rounded-lg hover:shadow-lg hover:opacity-80 transition duration-300 tracking-wider ease-in-out md:text-md lg:text-lg disabled:bg-gray-300 disabled:text-gray-800 disabled:pointer-events-none"
+                                :disabled="!handshake.url || !handshake.tokenA">
+                                Shake Hands <i class="ri-shake-hands-line text-lg text-white font-bold"></i>
+                            </button>
+                        </div>
+                        <div class="mt-5 text-slate-600 text-sm">
+                            (*) is mandatory, please fill the data
+                        </div>
+                    </div>
+                    <div class="flex flex-col w-full ml-5 mt-10" x-show="handshakeResult.status === 'OK'">
+                        <div>Handshake with CPO Result</div>
+                        <template x-for="step in handshakeResult.steps" :key="step.number">
+                            <div class="flex flex-col my-2 gap-2">
+                                <div x-text="step.number + '. ' + step.text"></div>
+                                <pre class="text-wrap" :class="step.status === 'OK' ? 'bg-emerald-100' : 'bg-rose-100'" x-text="step.data"></pre>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script>
+            function xData() {
+                return {
+                    handshake: {},
+                    handshakeResult: {},
+                    xInit() {
+                    },
+                    shakeHands() {
+                        if (this.handshake.url && this.handshake.tokenA) {
+                            fetch('/api/handshake',
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'token ' + this.handshake.tokenA
+                                    },
+                                    body: JSON.stringify(this.handshake)
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    this.handshakeResult = data;
+                                });
+                        }
+                    }
+                }
+            }
+        </script>
+    </main>
+</body>
+
+</html>

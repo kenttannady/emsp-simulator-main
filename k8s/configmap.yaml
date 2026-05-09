@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emsp-simulator-config
+  namespace: emsp-simulator
+data:
+  SPRING_PROFILES_ACTIVE: "kubernetes"
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql-service:3306/emsp_simulator"
+  SPRING_DATASOURCE_USERNAME: "emsp_user"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_JPA_SHOW_SQL: "true"
+  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.MySQL8Dialect"

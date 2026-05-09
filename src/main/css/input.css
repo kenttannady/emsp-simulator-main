@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+    font-family: 'Inter', sans-serif;
+}
+
+.notification-tab > .active {
+    @apply text-blue-500 border-b-blue-500 hover:text-blue-500;
+}
+
+.order-tab > .active {
+    @apply bg-blue-500 text-white hover:text-white;
+}
+
+.navbar-fixed{
+    @apply fixed z-[9999] bg-white bg-opacity-80 backdrop-blur-sm dark:bg-dark dark:bg-opacity-50;
+    box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.2)
+}
+
+.hamburger-line{
+    @apply w-[30px] h-[2px] my-2 block bg-dark dark:bg-white;
+}
+
+.hamburger-active > span:nth-child(1){
+    @apply rotate-45;
+}
+.hamburger-active > span:nth-child(2){
+    @apply scale-0;
+}
+.hamburger-active > span:nth-child(3){
+    @apply -rotate-45;
+}
+
+#dark-toggle:checked ~ label div.toggle-circle{
+    @apply translate-x-3;
+}

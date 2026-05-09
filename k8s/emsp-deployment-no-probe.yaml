@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emsp-simulator-deployment
+  namespace: emsp-simulator
+  labels:
+    app: emsp-simulator
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emsp-simulator
+  template:
+    metadata:
+      labels:
+        app: emsp-simulator
+        tier: frontend
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - name: emsp-simulator
+        image: ghcr.io/kenttannady/emsp-simulator:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: emsp-simulator-config
+        env:
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: emsp-simulator-secrets
+              key: SPRING_DATASOURCE_PASSWORD
+        # No health probes for debugging
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"

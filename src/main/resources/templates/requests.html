@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requests</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+
+</head>
+
+<body class="font-inter bg-slate-100">
+    <!-- Navigation section -->
+    <header>
+        <nav>
+            <!-- Sidebar for larger screen -->
+            <section id="sidebar" class="hidden sm:block">
+                <div class="fixed left-0 top-0 w-24 h-full bg-gray-100 p-2">
+                    <a href="/" class="flex items-center pb-4 border-b border-b-gray-800">
+                        <span class="font-bold text-xs text-primary block py-2 text-center">eMSP and CPO Simulator</span>
+                    </a>
+                    <ul class="mt-4 sidebar-menu">
+                        <li class="mb-5 group active">
+                            <a href="/"
+                            class="flex flex-col justify-center items-center py-2 text-slate-800 hover:text-white hover:bg-emerald-300 rounded-md group-[.active]:bg-emerald-500 group-[.active]:text-white">
+                            <i class="ri-database-2-line text-lg"></i>
+                                <span class="text-xs">Request</span>
+                            </a>
+                        </li>
+                        <li class="mb-1 group">
+                            <a href="/handshake"
+                            class="flex flex-col justify-center items-center py-2 text-slate-800 hover:text-white hover:bg-emerald-300 rounded-md bg-white shadow-md border">
+                            <i class="ri-shake-hands-line text-lg"></i>
+                                <span class="text-xs">Handshake</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            <!-- Section for smaller screen -->
+            <section id="bottomNav" class="lg:hidden">
+                <div
+                    class="lg:hidden bg-white fixed bottom-0 left-0 h-16 border rounded-t-2xl w-full shadow-t flex flex-row items-center justify-stretch">
+                    <ul class="flex w-full mx-2 gap-10 justify-center">
+                        <li>
+                            <a href="/" class="flex flex-col items-center text-emerald-500">
+                                <i class="ri-database-2-line text-lg"></i>
+                                <span class="text-xs">Request</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/handshake" class="flex flex-col items-center hover:cursor-pointer">
+                                <i class="ri-shake-hands-line text-lg"></i>
+                                <span class="text-xs">Handshake</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </nav>
+    </header>
+    <!-- Trading Diary -->
+    <main class="lg:w-[calc(100%-96px)] lg:ml-24 mb-24" x-data="xData()" x-init="xInit()">
+        <!-- header -->
+        <section id="search-notification-profile" class="px-2">
+            <div class="py-2 px-2 bg-white flex items-center justify-between shadow-md shadow-black/10 rounded-md">
+                <ul class="flex items-center text-sm">
+                    <li class="mr-2">
+                        <a href="#" class="text-gray-400 hover:text-gray-600 font-medium">
+                            <span class="text-center">eMSP & CPO Simulator</span></a>
+                    </li>
+                    <li class="text-gray-600 mr-2 font-medium">/</li>
+                    <li class="text-emerald-500 mr-2 font-medium">Request</li>
+                </ul>
+                <a href="/logout" class="p-1 font-semibold bg-emerald-500/10 text-emerald-500">Anonymous</a>
+            </div>
+        </section>
+        <section class="p-2">
+            <div x-data="xData()" x-init="xInit()"
+                class="bg-white border border-gray-100 shadow-md shadow-black/10 rounded-md p-2">
+                <div class="flex flex-row mb-2 items-center">
+                    <div
+                        class="border border-emerald-500 bg-emerald-500/10 rounded-full h-8 w-8 flex items-center justify-center">
+                        <span class="p-2 font-bold text-emerald-500">
+                            <i class="ri-database-2-line"></i>
+                        </span>
+                    </div>
+                    <div class="font-medium ml-3 mr-3">Requests</div>
+                    <div class="w-1/4 flex items-center">
+                        <i class="ri-search-line absolute ml-3"></i>
+                        <input type="text" x-model="q"
+                            class="py-2 px-4 pl-10 bg-gray-100 w-full outline-none border-gray-100 rounded-md text-sm focus:border-blue-500"
+                            placeholder="Search request ..." value="" />
+                    </div>
+                    <div class="font-medium ml-3" x-show="q.length > 0" x-text="'Searching for ' + q + ' requests'">
+                    </div>
+                    <button
+                        class="ml-3 text-lg font-bold text-white  bg-rose-500 p-1 rounded-lg hover:shadow-lg hover:opacity-80 transition duration-300 ease-in-out disabled:bg-gray-300 disabled:text-gray-800 disabled:pointer-events-none"
+                        @click="clearReqest()">
+                        Clear Requests
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table w-full mt-6 mx-auto">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="text-sm uppercase tracking-wide font-medium text-gray-900 text-left py-1 px-1 bg-emerald-50 rounded-tr-md rounded-br-md">
+                                    <button
+                                        @click="direction = sort != 'uid' ? 'asc' : direction === 'asc' ? 'desc' : 'asc';sort = 'uid';"
+                                        class="text-sm uppercase text-gray-900 text-left">
+                                        <i class=""
+                                            :class="sort === 'uid' && direction === 'asc'? 'ri-sort-asc' : sort === 'uid' && direction === 'desc'? 'ri-sort-desc': 'ri-menu-5-line'"></i>
+                                        UID
+                                    </button>
+                                </th>
+                                <th
+                                    class="text-sm uppercase tracking-wide font-medium text-gray-900 text-left py-1 px-1 bg-emerald-50 rounded-tr-md rounded-br-md">
+                                    <button
+                                        @click="direction = sort != 'module' ? 'asc' : direction === 'asc' ? 'desc' : 'asc';sort = 'module';"
+                                        class="text-sm uppercase text-gray-900 text-left">
+                                        <i class=""
+                                            :class="sort === 'module' && direction === 'asc'? 'ri-sort-asc' : sort === 'module' && direction === 'desc'? 'ri-sort-desc': 'ri-menu-5-line'"></i>
+                                        Module
+                                    </button>
+                                </th>
+                                <th
+                                    class="text-sm uppercase tracking-wide font-medium text-gray-900 text-left py-1 px-1 bg-emerald-50 rounded-tr-md rounded-br-md">
+                                    <button
+                                        @click="direction = sort != 'party' ? 'desc' : direction === 'desc' ? 'asc' : 'desc';sort = 'party';"
+                                        class="text-sm uppercase text-gray-900 text-left">
+                                        <i class=""
+                                            :class="sort === 'party' && direction === 'asc'? 'ri-sort-asc' : sort === 'party' && direction === 'desc'? 'ri-sort-desc': 'ri-menu-5-line'"></i>
+                                        Party
+                                    </button>
+                                </th>
+                                <th
+                                    class="text-sm uppercase tracking-wide font-medium text-gray-900 text-left py-1 px-1 bg-emerald-50 rounded-tr-md rounded-br-md">
+                                    <button
+                                        @click="direction = sort != 'version' ? 'desc' : direction === 'desc' ? 'asc' : 'desc';sort = 'version';"
+                                        class="text-sm uppercase text-gray-900 text-left">
+                                        <i class=""
+                                            :class="sort === 'version' && direction === 'asc'? 'ri-sort-asc' : sort === 'version' && direction === 'desc'? 'ri-sort-desc': 'ri-menu-5-line'"></i>
+                                        Version
+                                    </button>
+                                </th>
+                                <th
+                                    class="text-sm uppercase tracking-wide font-medium text-gray-900 text-left py-1 px-1 bg-emerald-50 rounded-tr-md rounded-br-md">
+                                    <button
+                                        @click="direction = sort != 'date' ? 'desc' : direction === 'desc' ? 'asc' : 'desc';sort = 'date';"
+                                        class="text-sm uppercase text-gray-900 text-left">
+                                        <i class=""
+                                            :class="sort === 'date' && direction === 'asc'? 'ri-sort-asc' : sort === 'date' && direction === 'desc'? 'ri-sort-desc': 'ri-menu-5-line'"></i>
+                                        Request Date
+                                    </button>
+                                </th>
+                                <th
+                                    class="text-sm uppercase tracking-wide font-medium text-gray-900 text-left py-1 px-1 bg-emerald-50 rounded-tr-md rounded-br-md">
+                                    <button
+                                        @click="direction = sort != 'data' ? 'desc' : direction === 'desc' ? 'asc' : 'desc';sort = 'data';"
+                                        class="text-sm uppercase text-gray-900 text-left">
+                                        <i class=""
+                                            :class="sort === 'data' && direction === 'asc'? 'ri-sort-asc' : sort === 'data' && direction === 'desc'? 'ri-sort-desc': 'ri-menu-5-line'"></i>
+                                        JSON Data
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <template x-for="request in requests" :key="request.id" class="text-[12px] font-medium">
+                            <tr class="border-b border-b-gray-100">
+                                <td class="p-1 text-xs" x-text="request.uid"></td>
+                                <td class="p-1 text-xs" x-text="request.module"></td>
+                                <td class="p-1 text-xs" x-text="request.party"></td>
+                                <td class="p-1 text-xs" x-text="request.version"></td>
+                                <td class="p-1 text-xs" x-text="request.date"></td>
+                                <td class="p-1 text-xs" x-text="request.data"></td>
+                            </tr>
+                        </template>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <script>
+            function xData() {
+                return {
+                    requests: [],
+                    q: "",
+                    sort: "",
+                    direction: "",
+                    xInit() {
+                        fetch("/api/requests")
+                            .then(response => response.json())
+                            .then(data => {
+                                this.requests = data;
+                            });
+                    },
+                    clearReqest() {
+                        fetch("/api/requests", { method: 'DELETE' });
+                        this.xInit();
+                    }
+                }
+            }
+        </script>
+    </main>
+</body>
+
+</html>
